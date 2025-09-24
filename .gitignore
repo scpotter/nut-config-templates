@@ -1,0 +1,6 @@
+# LLM Generated
+../nut-secrets/
+.vscode/
+*.log
+*.db
+secrets.yaml
