@@ -1,0 +1,12 @@
+#!/bin/sh
+case $1 in
+  synology-shutdown)
+    ssh user@NAS_HOST "/sbin/poweroff"
+    ;;
+  ups-warning)
+    logger "UPS rackUPS battery below 50%"
+    ;;
+  pdu-warning)
+    logger "PDU rackPDU battery below 20%"
+    ;;
+esac

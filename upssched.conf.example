@@ -1,0 +1,12 @@
+CMDSCRIPT /etc/nut/upssched-cmd
+PIPEFN /etc/nut/upssched.pipe
+LOCKFN /etc/nut/upssched.lock
+
+# UPS battery < 50% → log warning
+AT rackUPS.battery.charge < 50 EXEC ups-warning
+
+# UPS battery < 40% → shut down Synology
+AT rackUPS.battery.charge < 40 EXEC synology-shutdown
+
+# PDU battery < 20% → log warning
+AT rackPDU.battery.charge < 20 EXEC pdu-warning
