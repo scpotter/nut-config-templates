@@ -69,8 +69,18 @@ RENDER_PDU_IP="${PDU_IP}"
 export RENDER_MON_USER RENDER_MON_PASS RENDER_PAD_USER RENDER_PAD_PASS \
        RENDER_UPS_COMMUNITY RENDER_PDU_COMMUNITY RENDER_UPS_IP RENDER_PDU_IP
 
+# --- prerequisites -------------------------------------------------------
+# gettext-base gives us envsubst; nut-snmp is the snmp-ups driver binary
+# (the `nut` metapackage does NOT pull it on Debian). Missing either is a
+# hard stop for the render/restart below.
+_missing=()
+command -v envsubst >/dev/null            || _missing+=(gettext-base)
+[ -x /lib/nut/snmp-ups ] || [ -x /usr/lib/nut/snmp-ups ] || _missing+=(nut-snmp)
+if [ "${#_missing[@]}" -gt 0 ]; then
+  apt-get update -qq && apt-get install -y -qq "${_missing[@]}"
+fi
+
 # --- render /etc/nut ---------------------------------------------------------
-command -v envsubst >/dev/null || { apt-get update -qq && apt-get install -y -qq gettext-base; }
 
 install -d -m 0755 /etc/nut
 _grp=root; getent group nut >/dev/null && _grp=nut
@@ -102,19 +112,37 @@ printf 'MODE=netserver\n' > /etc/nut/nut.conf
 chmod 0644 /etc/nut/nut.conf
 
 # --- restart ---------------------------------------------------------------
-# nut-driver-enumerator regenerates the per-UPS nut-driver@<name> units from
-# the fresh ups.conf; then bounce drivers, server, monitor.
-systemctl restart nut-driver-enumerator.service 2>/dev/null || true
-if systemctl cat nut.target >/dev/null 2>&1; then
-  systemctl restart nut.target
-else
-  systemctl restart 'nut-driver@*.service' nut-server.service nut-monitor.service 2>/dev/null \
-    || systemctl restart nut-server.service nut-monitor.service
-fi
+# nut-driver-enumerator (a Type=oneshot) regenerates the per-device
+# nut-driver@<name> instances from the fresh ups.conf and wires them into
+# nut-driver.target. Then: clear any auto-restart backoff from a prior bad
+# run, reload, and bounce drivers + server + monitor by explicit name.
+systemctl restart nut-driver-enumerator.service
+systemctl reset-failed 'nut-driver@*.service' 2>/dev/null || true
+systemctl daemon-reload
+systemctl restart nut-driver.target nut-server.service nut-monitor.service
 
-if systemctl is-active --quiet nut-server.service && systemctl is-active --quiet nut-monitor.service; then
-  echo "nut-config-templates: /etc/nut rendered, NUT restarted"
+_bad=""
+for u in nut-server.service nut-monitor.service; do
+  systemctl is-active --quiet "$u" || _bad="$_bad $u"
+done
+
+# Drivers report readiness to upsd, not just to systemd, and the first SNMP
+# poll of an APC card can take 10-15s — retry before declaring failure.
+_wait_driver() {  # _wait_driver <upsname>
+  local tries=15
+  while [ "$tries" -gt 0 ]; do
+    upsc "$1" device.model >/dev/null 2>&1 && return 0
+    tries=$((tries - 1))
+    sleep 2
+  done
+  return 1
+}
+_wait_driver rack_UPS || _bad="$_bad rack_UPS-driver"
+_wait_driver rack_PDU || _bad="$_bad rack_PDU-driver"
+
+if [ -z "$_bad" ]; then
+  echo "nut-config-templates: /etc/nut rendered, NUT up (both drivers serving upsd)"
 else
-  echo "nut-config-templates: a NUT unit is not active — systemctl status nut-server nut-monitor" >&2
+  echo "nut-config-templates: not healthy —$_bad. Check: systemctl status 'nut-driver@*' nut-server nut-monitor" >&2
   exit 1
 fi
