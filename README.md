@@ -1,4 +1,4 @@
-# nut-config-templates
+# network-nut-server
 
 Config templates and a generate script for a native [NUT](https://networkupstools.org/)
 server monitoring an **APC Smart-UPS** (via its Network Management Card) and
@@ -24,7 +24,7 @@ every launch and exists only on the host.
 ## Setup
 
 1. `git clone` this repo to its production path (this operator uses
-   `/opt/nut-config-templates`).
+   `/opt/network-nut-server`).
 2. Copy `example.env` to `host_config.env` and fill in real values — the
    Infisical folder names, the two device IPs, and your Infisical instance
    URL + `core-infra` project ID.

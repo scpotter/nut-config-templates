@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# nut-config-templates — generate script (tier 4 of the four-tier secrets
+# network-nut-server — generate script (tier 4 of the four-tier secrets
 # model). Renders /etc/nut/* from the templates in this repo plus an
 # Infisical export, then restarts NUT. Nothing rendered is written back into
 # this checkout; the real config lives only under /etc/nut and is
@@ -141,8 +141,8 @@ _wait_driver rack_UPS || _bad="$_bad rack_UPS-driver"
 _wait_driver rack_PDU || _bad="$_bad rack_PDU-driver"
 
 if [ -z "$_bad" ]; then
-  echo "nut-config-templates: /etc/nut rendered, NUT up (both drivers serving upsd)"
+  echo "network-nut-server: /etc/nut rendered, NUT up (both drivers serving upsd)"
 else
-  echo "nut-config-templates: not healthy —$_bad. Check: systemctl status 'nut-driver@*' nut-server nut-monitor" >&2
+  echo "network-nut-server: not healthy —$_bad. Check: systemctl status 'nut-driver@*' nut-server nut-monitor" >&2
   exit 1
 fi
