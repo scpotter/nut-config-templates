@@ -1,0 +1,20 @@
+# Rendered to /etc/nut/ups.conf by ../launch.sh on every launch.
+# Do not edit the rendered file directly — it is overwritten each run.
+# RENDER_* tokens are substituted from Infisical + host_config.env; every
+# other value here is committed as-is.
+
+[rack_UPS]
+    driver = snmp-ups
+    port = ${RENDER_UPS_IP}
+    community = ${RENDER_UPS_COMMUNITY}
+    mibs = apcc
+    desc = "APC Smart-UPS 1500"
+
+[rack_PDU]
+    driver = snmp-ups
+    port = ${RENDER_PDU_IP}
+    community = ${RENDER_PDU_COMMUNITY}
+    mibs = apc_pdu
+    desc = "APC AP7920 PDU"
+    pollfreq = 30
+    pollinterval = 15

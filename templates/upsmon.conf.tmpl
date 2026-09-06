@@ -1,0 +1,28 @@
+# Rendered to /etc/nut/upsmon.conf by ../launch.sh (mode 0640 root:nut —
+# the monitor password is inline). Carried forward from the old deployment
+# unchanged except the account (was a single combined account, now the
+# low-privilege `monitor` account) and the killpower flag path.
+#
+# NOTE: rack_PDU is monitored with powervalue 1 as the old config had it.
+# A PDU is not actually a power source for this host; powervalue 0 would be
+# more correct. Left as-is (maintain, don't change behaviour) — a candidate
+# for a future review.
+
+MONITOR rack_UPS@localhost 1 ${RENDER_MON_USER} ${RENDER_MON_PASS} master
+MONITOR rack_PDU@localhost 1 ${RENDER_MON_USER} ${RENDER_MON_PASS} master
+
+MINSUPPLIES 1
+SHUTDOWNCMD "/sbin/shutdown -h now"
+RBWARNTIME 300
+FINALDELAY 5
+POWERDOWNFLAG /run/nut/killpower
+
+NOTIFYCMD /etc/nut/notify.sh
+
+NOTIFYFLAG ONBATT   SYSLOG+EXEC
+NOTIFYFLAG LOWBATT  SYSLOG+EXEC
+NOTIFYFLAG ONLINE   SYSLOG+EXEC
+NOTIFYFLAG FSD      SYSLOG+EXEC
+NOTIFYFLAG COMMOK   SYSLOG+EXEC
+NOTIFYFLAG COMMBAD  SYSLOG+EXEC
+NOTIFYFLAG REPLBATT SYSLOG+EXEC

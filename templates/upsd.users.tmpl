@@ -1,0 +1,19 @@
+# Rendered to /etc/nut/upsd.users by ../launch.sh (mode 0640 root:nut).
+# Two accounts, split from the single over-privileged account the old
+# Docker deployment carried:
+#
+#   monitor  — upsmon master only. This is the credential written into
+#              upsmon.conf, so it is always loaded; it holds no admin rights.
+#   padmin   — actions=SET + instcmds=ALL, for interactive operator use
+#              (upsrw / upscmd by hand). Never written into upsmon.conf.
+#
+# Reads over 3493 need no account (stock upsd allows anonymous GET VAR).
+
+[${RENDER_MON_USER}]
+    password = ${RENDER_MON_PASS}
+    upsmon master
+
+[${RENDER_PAD_USER}]
+    password = ${RENDER_PAD_PASS}
+    actions = SET
+    instcmds = ALL

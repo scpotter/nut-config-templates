@@ -1,0 +1,7 @@
+# Rendered to /etc/nut/upsd.conf by ../launch.sh. No substitutions — kept as
+# a template only so one mechanism owns every file under /etc/nut.
+#
+# Listen on all interfaces: external consumers (Home Assistant, fabric
+# monitoring, upsc from other hosts) read variables anonymously over 3493.
+LISTEN 0.0.0.0 3493
+LISTEN :: 3493

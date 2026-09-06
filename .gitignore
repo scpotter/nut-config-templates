@@ -1,6 +1,5 @@
-# LLM Generated
-../nut-secrets/
+# The generated host_config.env — real values, never committed.
+/host_config.env
+
 .vscode/
 *.log
-*.db
-secrets.yaml
